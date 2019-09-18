@@ -1,34 +1,4 @@
 from django.test import TestCase
-
-# Create your tests here.
-# from openpyxl import Workbook,load_workbook
-# from openpyxl.utils import get_column_letter
-# from .models import UserInfo,Score
-#
-# def import_data(self,request,obj,change):
-#     wb = load_workbook(filename='/Users/wuwanlei/Desktop/Axepanda/member socres.xlsx')
-#     ws = wb.get_sheet_names()
-#     ws = wb.get_sheet_by_name(ws[0])
-#     headers = ['username','gender','age','nationality','first']
-#
-# import xlrd
-# book = xlrd.open_workbook(filename='/Users/wuwanlei/Desktop/Axepanda/member socres.xlsx')
-# sheet = book.sheet_by_name('Sheet1')
-# ll = []
-# for r in range(1,sheet.nrows):
-#     data = {}
-#     data['username'] = sheet.cell(r,0).value
-#     data['gender'] = sheet.cell(r,1).value
-#     data['age'] = sheet.cell(r,2).value
-#     data['nation'] = sheet.cell(r,3).value
-#     data['total_score'] = sheet.cell(r,14).value
-#     data['category'] = sheet.cell(r,15).value
-#     data['listt'] = sheet.cell(r,16).value
-#     data['created'] = sheet.cell(r,17).value
-#     ll.append(data)
-# print(ll)
-
-
 import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "Axepanda.settings")
 import django
@@ -36,7 +6,8 @@ django.setup()
 
 import pandas as pd
 file_path = '/Users/wuwanlei/Desktop/Axepanda/member socres.xlsx'
-def R(path):
+# file_path = r"C:\Users\77922\Downloads\Axepanda-master\Axepanda\member socres.xlsx"
+def analysis_excel(path):
     df = pd.read_excel(path)
     df.fillna("",inplace=True)
     df_list = []
@@ -45,16 +16,30 @@ def R(path):
                             '第6环','第7环','第8环','第9环','第10环','总分','类别','榜单','录入时间',]].to_dict()
         df_list.append(df_line)
     return df_list
-#
-# for item in func1(path):
-#     username = item.get('姓名')
-#     gender = item.get('性别')
-#     age = item.get('年龄')
-#     nation = item.get('国籍')
-#     total = item.get('总分')
-#     sixth = item.get('第7环')
-#     print(username,gender,age,nation)
-#     if username == 'panda008':
-#         from user.models import UserInfo,Score
-#         score_obj = Score.objects.create(total=total,sixth=sixth)
-#         obj = UserInfo.objects.create(username=username,age=age,nationality=nation,score_id=score_obj.id)
+print(analysis_excel(file_path))
+
+for item in analysis_excel(file_path):
+    username = item.get('姓名')
+    gender = item.get('性别')
+    age = item.get('年龄')
+    nationality = item.get('国籍')
+    category = item.get('类别')
+    crunchies = item.get('榜单')
+    created = item.get('录入时间').to_pydatetime()
+    first = item.get('第1环')
+    second = item.get('第2环')
+    third = item.get('第3环')
+    fourth = item.get('第4环')
+    fifth = item.get('第5环')
+    sixth = item.get('第6环')
+    seventh = item.get('第7环')
+    eighth = item.get('第8环')
+    ninth = item.get('第9环')
+    tenth = item.get('第10环')
+    total = item.get('总分')
+    print(username,gender,age,nationality,category,crunchies,created)
+    # if username == 'panda008':
+    #     from user.models import UserInfo,Score
+    #     user_obj = UserInfo.objects.create(username=username,gender=gender,age=age,nationality=nationality,category=category,
+    #                                   crunchies=crunchies,created=created)
+    #     score_obj = Score.objects.create(total=total,sixth=sixth,user=user_obj)

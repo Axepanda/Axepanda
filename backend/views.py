@@ -4,6 +4,8 @@ from user.common import UserResponse
 from user.views import UserInfo
 from Axepanda import settings
 import os
+from backend.common import analysis_excel,read_data
+from backend.models import ExcelFile
 
 class BDLogin(APIView):
     def post(self,request,*args,**kwargs):
@@ -18,7 +20,7 @@ class BDLogin(APIView):
         password = request.data.get("password",None)
         if username and password:
             superuser_obj = UserInfo.objects.filter(username=username).first()
-            if superuser_obj.is_superuser == 1:
+            if superuser_obj.password == password:
                 response.msg = "login successfully"
             else:
                 response.status = 401
@@ -44,6 +46,7 @@ class UploadFile(APIView):
             response.msg = "There is no file"
             return Response(response.get_data)
         file_name = file.name
+        file_size = file.size
         suffix = file_name.split('.')[1]
         if not self._detect_suffix(suffix):
             response.status = 402
@@ -52,18 +55,19 @@ class UploadFile(APIView):
         else:
             file_path = settings.MEDIA_ROOT + '\\' + file.name
             if os.path.exists(file_path):
-                self._write_file(file_path,file)
+                self._write_file(file_path, file)
+                self._import_excel(file_path, response, file_name, file_size)
             else:
-                self._write_file(file_path,file)
-            response.msg = "Upload successfully"
+                self._write_file(file_path, file)
+                self._import_excel(file_path, response, file_name, file_size)
             return Response(response.get_data)
 
-    def _write_file(self,file_path,file):
+    def _write_file(self, file_path, file):
         with open(file_path, 'wb+') as f:
             for chunk in file.chunks():
                 f.write(chunk)
 
-    def _detect_suffix(self,suffix):
+    def _detect_suffix(self, suffix):
         if not suffix:
             return False
         elif suffix.lower() == 'xlsx' or suffix.lower() == 'csv':
@@ -71,6 +75,13 @@ class UploadFile(APIView):
         else:
             return False
 
+    def _import_excel(self, file_path, response, file_name, file_size):
+        result = read_data(df_list=analysis_excel(file_path))
+        if result.get("status") == 200:
+            ExcelFile.objects.create(filename=file_name, size=file_size, path=file_path)
+            response.msg = "Upload successfully"
+        else:
+            response.msg = result.get("msg")
 
 class Notice(APIView):
     def get(self,request,*args,**kwargs):

@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 class UserInfo(AbstractUser):
+    avatar = models.CharField(max_length=50, null=True, blank=True, verbose_name="头像")
+    openid = models.CharField(max_length=64,null=True,blank=True,verbose_name='openid')
     phone = models.CharField(verbose_name="电话号码",max_length=11,blank=True,null=True)
     age = models.CharField(verbose_name="年龄",max_length=10,blank=True,null=True)
     gender = models.CharField(max_length=5,verbose_name="性别",blank=True,null=True)

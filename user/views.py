@@ -1,28 +1,14 @@
-from django.shortcuts import render, HttpResponse, redirect
+import json
+import requests
+from django.http import JsonResponse
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from user.common import UserResponse, detect_phone
+from rest_framework_jwt.settings import api_settings
+from user.common import UserResponse, detect_phone, generate_token
 from user.models import UserInfo, ScoreRecord
 from Axepanda import settings
 import os, datetime
-
-
-class WXLogin(APIView):
-    def post(self, request, *args, **kwargs):
-        response = UserResponse()
-        username = request.data.get("username", None)
-        password = request.data.get("password", None)
-        if username and password:
-            superuser_obj = UserInfo.objects.filter(username=username).first()
-            if superuser_obj.is_superuser == 1:
-                response.msg = "login successfully"
-            else:
-                response.status = 401
-                response.msg = "wrong password"
-        else:
-            response.status = 402
-            response.msg = "The data is incomplete"
-        return Response(response.get_data)
 
 
 class IndexDetail(APIView):
@@ -41,31 +27,31 @@ class IndexDetail(APIView):
         current_month = datetime.datetime.now().month
         if category == 'athletics' and crunchies == 'new':
             if type == "month":
-                score_dict = ScoreRecord.objects.filter(category=0, crunchies=0,
-                                                        created__month=current_month).order_by("-total").values(
+                score_obj = ScoreRecord.objects.filter(category=0, crunchies=0,
+                                                       created__month=current_month).order_by("-total").values(
                     "user__username", "total").distinct()[:50]
             elif type == "quarter":
-                score_dict = ScoreRecord.objects.filter(category=0, crunchies=0).filter(
+                score_obj = ScoreRecord.objects.filter(category=0, crunchies=0).filter(
                     created__month__in=[current_month, current_month + 1, current_month + 2]).order_by("-total").values(
                     "user__username", "total").distinct()[:50]
             else:
-                score_dict = ScoreRecord.objects.filter(category=0, crunchies=0).order_by("-total").values(
+                score_obj = ScoreRecord.objects.filter(category=0, crunchies=0).order_by("-total").values(
                     "user__username", "total").distinct()[:50]
-            data_list = self._getdata(score_dict, data_list, crunchies='new')
+            data_list = self._getdata(score_obj, data_list, crunchies='new')
 
         elif category == 'athletics' and crunchies == 'brave':
             if type == "month":
-                score_instance_list = ScoreRecord.objects.filter(category=0, crunchies=1,
-                                                                 created__month=current_month).order_by(
+                score_obj = ScoreRecord.objects.filter(category=0, crunchies=1,
+                                                       created__month=current_month).order_by(
                     "-total").values("user__username", "total").distinct()[:50]
             elif type == 'quarter':
-                score_instance_list = ScoreRecord.objects.filter(category=0, crunchies=1).filter(
+                score_obj = ScoreRecord.objects.filter(category=0, crunchies=1).filter(
                     created__month__in=[current_month, current_month + 1, current_month + 2]).order_by("-total").values(
                     "user__username", "total").distinct()[:50]
             else:
-                score_instance_list = ScoreRecord.objects.filter(category=0, crunchies=1).order_by("-total").values(
+                score_obj = ScoreRecord.objects.filter(category=0, crunchies=1).order_by("-total").values(
                     "user__username", "total").distinct()[:50]
-            data_list = self._getdata(score_instance_list, data_list, crunchies='brave')
+            data_list = self._getdata(score_obj, data_list, crunchies='brave')
 
         elif category == "recreation":
             pass
@@ -73,8 +59,8 @@ class IndexDetail(APIView):
         response.msg = "Query successfully"
         return Response(response.get_data)
 
-    def _getdata(self, score_dict, data_list, crunchies):
-        for index, item in enumerate(score_dict):
+    def _getdata(self, score_obj, data_list, crunchies):
+        for index, item in enumerate(score_obj):
             data = {}
             data["total"] = item.get("total")
             data["of user"] = item.get("user__username")
@@ -96,25 +82,68 @@ class UserDetail(APIView):
         phone = request.GET.get('phone', None)
         total = request.GET.get('total', None)
         crunchies = request.GET.get('crunchies', None)
+        crunchies = self._get_crunchies(crunchies)
         result_phone = detect_phone(phone)
         if result_phone.get('status') == 200:
             user_obj = UserInfo.objects.filter(phone=phone).first()
             if user_obj:
                 datalist = []
-                score_dict = ScoreRecord.objects.filter(total=total, crunchies=crunchies).values("first", "second",
-                                                                                                 "third", "fourth",
-                                                                                                 "fifth", "sixth",
-                                                                                                 "seventh", "eighth",
-                                                                                                 "ninth", "tenth")
-                for k, v in score_dict.items():
-                    data = {}
-                    data[k] = v
-                    datalist.append(data)
+                score_obj = ScoreRecord.objects.filter(user_id=user_obj.id, total=total, crunchies=crunchies).values(
+                    "first", "second",
+                    "third", "fourth",
+                    "fifth", "sixth",
+                    "seventh", "eighth",
+                    "ninth", "tenth", "crunchies")
+
+                for item in score_obj:
+                    datalist.append(item)
                 response.datalist = datalist
+                response.msg = "Query successfully"
             else:
                 response.status = 401
                 response.msg = "User doesn't exist"
         else:
             response.status = 402
             response.msg = "Phone number is wrong"
+        return Response(response.get_data)
+
+    def _get_crunchies(self, crunchies):
+        if crunchies == "new":
+            return 0
+        elif crunchies == "brave":
+            return 1
+        elif crunchies == "master":
+            return 2
+        else:
+            return 3
+
+
+class WechatLoginView(APIView):
+    def post(self, request, *args, **kwargs):
+        response = UserResponse()
+        code = request.data.get('code', None)
+        gender = request.data.get('gender', None)
+        country = request.data.get('country', None)
+        if not code:
+            return Response({'message': '缺少code'}, status=status.HTTP_400_BAD_REQUEST)
+
+        url = "https://api.weixin.qq.com/sns/jscode2session?appid={0}&secret={1}&js_code={2}&grant_type=authorization_code" \
+            .format(settings.APP_ID, settings.APP_KEY, code)
+        r = requests.get(url)
+        res = json.loads(r.text)
+        openid = res['openid'] if 'openid' in res else None
+        session_key = res['session_key'] if 'session_key' in res else None
+        if not openid:
+            return Response({'message': '微信调用失败'}, status=status.HTTP_400_BAD_REQUEST)
+        openid = '033xWHE718sLYL1VYID71LEME71xWHEI'
+        user = UserInfo.objects.filter(username=openid).first()
+        if user:
+            UserInfo.objects.filter(username=openid).update(gender=gender, nationality=country)
+            token = generate_token(user.id, openid)
+        else:
+            user_obj = UserInfo.objects.create(username=openid, gender=gender, nationality=country)
+            token = generate_token(user_obj.id, openid)
+        response.msg = "Login Ok!"
+        response.token = token
+        response.openid = openid
         return Response(response.get_data)

@@ -1,4 +1,5 @@
 from django.shortcuts import render,redirect,HttpResponse
+from rest_framework.authentication import BaseAuthentication
 from rest_framework.views import APIView,Response
 from user.common import UserResponse
 from user.views import UserInfo
@@ -6,6 +7,7 @@ from Axepanda import settings
 import os
 from backend.common import analysis_excel,read_data
 from backend.models import ExcelFile
+from user.auth import JSONWebTokenAuth
 
 class BDLogin(APIView):
     def post(self,request,*args,**kwargs):
@@ -84,6 +86,7 @@ class UploadFile(APIView):
             response.msg = result.get("msg")
 
 class Notice(APIView):
+    authentication_classes = [JSONWebTokenAuth,]
     def get(self,request,*args,**kwargs):
         """
         :param request:
@@ -92,7 +95,9 @@ class Notice(APIView):
         :return:
         """
         response = UserResponse()
-        pass
+        response.msg = "我是榜单规则"
+        return Response(response.get_data)
+
     def post(self,request,*args,**kwargs):
         """
         :param request:

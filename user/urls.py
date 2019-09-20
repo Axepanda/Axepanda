@@ -5,7 +5,7 @@ from django.urls import path
 from user import views
 
 urlpatterns = [
-    path('code/', views.WXLogin.as_view()),
+    path('wxlogin/', views.WechatLoginView.as_view()),
     path('index/', views.IndexDetail.as_view()),
     path('personal/', views.UserDetail.as_view())
 ]

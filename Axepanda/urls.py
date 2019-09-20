@@ -19,7 +19,7 @@ from django.contrib import admin
 from rest_framework.schemas import get_schema_view
 
 urlpatterns = [
-    path(r'^admin/', admin.site.urls),
+    path('admin/', admin.site.urls),
     path('user/', include("user.urls")),
     path('backend/', include("backend.urls")),
 ]

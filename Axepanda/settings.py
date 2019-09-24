@@ -132,8 +132,8 @@ AUTH_USER_MODEL = "user.UserInfo"
 
 MEDIA_ROOT = os.path.join(BASE_DIR,'media')
 
-APP_ID = 'wxe7138dc23beb3847'
-APP_KEY = 'c2b7ba1f7081900c99c55088c6941882'
+APP_ID = 'wxfa46ecb65d97577c'
+APP_KEY = 'ff7d0fabf9812e1f629505f3ff4f4a2e'
 
 # REST_FRAMEWORK = {
 #     'DEFAULT_AUTHENTICATION_CLASSES': (

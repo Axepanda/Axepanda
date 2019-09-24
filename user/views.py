@@ -124,8 +124,7 @@ class WechatLoginView(APIView):
         gender = request.data.get('gender', None)
         country = request.data.get('country', None)
         # if not code:
-        #     return Response({'message':'lack code'}, status=status.HTTP_400_BAD_REQUEST)
-        #
+        #     return Response({'message': '缺少code'}, status=status.HTTP_400_BAD_REQUEST)
         # url = "https://api.weixin.qq.com/sns/jscode2session?appid={0}&secret={1}&js_code={2}&grant_type=authorization_code" \
         #     .format(settings.APP_ID, settings.APP_KEY, code)
         # r = requests.get(url)
@@ -135,6 +134,7 @@ class WechatLoginView(APIView):
         # print(openid)
         # if not openid:
         #     return Response({'message': 'The WeChat call failed'}, status=status.HTTP_400_BAD_REQUEST)
+
         openid = '033xWHE718sLYL1VYID71LEME71xWHEI'
         user = UserInfo.objects.filter(username=openid).first()
         if user:

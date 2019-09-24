@@ -4,7 +4,6 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_jwt.settings import api_settings
 from user.common import UserResponse, detect_phone, generate_token
 from user.models import UserInfo, ScoreRecord
 from Axepanda import settings
@@ -124,17 +123,18 @@ class WechatLoginView(APIView):
         code = request.data.get('code', None)
         gender = request.data.get('gender', None)
         country = request.data.get('country', None)
-        if not code:
-            return Response({'message': '缺少code'}, status=status.HTTP_400_BAD_REQUEST)
-
-        url = "https://api.weixin.qq.com/sns/jscode2session?appid={0}&secret={1}&js_code={2}&grant_type=authorization_code" \
-            .format(settings.APP_ID, settings.APP_KEY, code)
-        r = requests.get(url)
-        res = json.loads(r.text)
-        openid = res['openid'] if 'openid' in res else None
-        session_key = res['session_key'] if 'session_key' in res else None
-        if not openid:
-            return Response({'message': '微信调用失败'}, status=status.HTTP_400_BAD_REQUEST)
+        # if not code:
+        #     return Response({'message':'lack code'}, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # url = "https://api.weixin.qq.com/sns/jscode2session?appid={0}&secret={1}&js_code={2}&grant_type=authorization_code" \
+        #     .format(settings.APP_ID, settings.APP_KEY, code)
+        # r = requests.get(url)
+        # res = json.loads(r.text)
+        # openid = res['openid'] if 'openid' in res else None
+        # session_key = res['session_key'] if 'session_key' in res else None
+        # print(openid)
+        # if not openid:
+        #     return Response({'message': 'The WeChat call failed'}, status=status.HTTP_400_BAD_REQUEST)
         openid = '033xWHE718sLYL1VYID71LEME71xWHEI'
         user = UserInfo.objects.filter(username=openid).first()
         if user:

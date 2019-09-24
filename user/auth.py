@@ -3,7 +3,7 @@
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from user.common import verify_token
-from jwt.exceptions import InvalidTokenError
+
 
 class JSONWebTokenAuth(BaseAuthentication):
     def authenticate(self, request, *args, **kwargs):

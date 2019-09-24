@@ -65,7 +65,7 @@ class UploadFile(APIView):
             return Response(response.get_data)
 
     def _write_file(self, file_path, file):
-        with open(file_path, 'wb+') as f:
+        with open(file_path, 'wb+',encoding="utf-8") as f:
             for chunk in file.chunks():
                 f.write(chunk)
 
@@ -97,13 +97,3 @@ class Notice(APIView):
         response = UserResponse()
         response.msg = "我是榜单规则"
         return Response(response.get_data)
-
-    def post(self,request,*args,**kwargs):
-        """
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        response = UserResponse()
-        pass

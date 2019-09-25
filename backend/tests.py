@@ -5,11 +5,11 @@ import json
 from Crypto.Cipher import AES
 from Axepanda import settings
 import requests
-cloudID="25_cKblmqmPidyaE0N2Th3tVpGpMdoN56NEiwnMrM5qTXswToa2ZNbXT4dsu5w"
-code="0336BDqD0Cfbqk26Y3sD0OKEqD06BDq8"
-encryptedData="06XL6PzvCI1Kd438LpvdPXdlVhknCHjZhpduLwnBIXAtY/RmDuqP6KonNsXhG5yNh9UIgX7gB6ElTBxGKqIa3PCEkOIcJpf6Kt75kVX1I+ARsG8xUfqTzgdMBzgFuHXH3oBuRi7OTcZOySCRNdzu19McqMwVroL7iW5Dg6nSp5C6zfOB4o+BtpNP/YDMhZd4GQWtNI9Yn3nCX1v1s8lp1Q=="
-errMsg="getPhoneNumber:ok"
-iv="u1mG5LH7hbdwTOVxpjObXQ=="
+cloudID= "25_YHU9oySSdkcGRnDegX9dax1-cl9-KyKeXgw8K2g68XHUNX0vk9qrR2Cr_dA"
+code= "043ZTk2i1JxZJv01hg0i1Wqs2i1ZTk25"
+encryptedData= "6bQpj29qiwAF57tXo2Py/fTQ/zD3iLMz6Dj5Z6fGoKhxifTHzUnJvReCw7U/HUIVav+oxBzKTGI+z6KW6h3NnvWhFHQqJK9AAadTSiJcX4qZZ30Bp0uDDctrt4IsNDARO5vslIwjLEdwxyFPZ09udfBpY1qcryxnltVEfl/5c2vCQ/UdTGNBcQsXMKzSbtep5zG7MNUCnEX/fKXfKSggzQ=="
+errMsg= "getPhoneNumber:ok"
+iv= "UFmFCXRtdbEv9nhdm1yiDQ=="
 #
 url = "https://api.weixin.qq.com/sns/jscode2session?appid={0}&secret={1}&js_code={2}&grant_type=authorization_code" \
             .format(settings.APP_ID, settings.APP_KEY, code)

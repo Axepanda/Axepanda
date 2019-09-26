@@ -46,9 +46,9 @@ print(session_key)
 # print(pc)
 # res = pc.decrypt(encryptedData, iv)
 # print(res)
-import base64
-import json
-from Crypto.Cipher import AES
+# import base64
+# import json
+# from Crypto.Cipher import AES
 class WXBizDataCrypt(object):
     def __init__(self, appId, sessionKey):
         self.appId = appId

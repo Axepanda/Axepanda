@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 class UserInfo(AbstractUser):
-    avatar = models.CharField(max_length=50, null=True, blank=True, verbose_name="头像")
+    avatar = models.CharField(max_length=200, null=True, blank=True, verbose_name="头像")
     openid = models.CharField(max_length=64,null=True,blank=True,verbose_name='openid')
     phone = models.CharField(verbose_name="电话号码",max_length=11,blank=True,null=True)
     age = models.CharField(verbose_name="年龄",max_length=10,blank=True,null=True)
@@ -49,3 +49,6 @@ class ScoreRecord(models.Model):
     class Meta:
         verbose_name = "积分表"
         verbose_name_plural = "积分表"
+
+
+

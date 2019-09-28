@@ -56,6 +56,20 @@ class IndexDetail(APIView):
                     "user__username", "total").distinct()[:50]
             data_list = self._getdata(score_obj, data_list, crunchies='brave')
 
+        elif category == 'athletics' and crunchies == 'king':
+            if type == "month":
+                score_obj = ScoreRecord.objects.filter(category=0, crunchies=3,
+                                                       created__month=current_month).order_by(
+                    "-total").values("user__username", "total").distinct()[:50]
+            elif type == 'quarter':
+                score_obj = ScoreRecord.objects.filter(category=0, crunchies=3).filter(
+                    created__month__in=[current_month, current_month + 1, current_month + 2]).order_by("-total").values(
+                    "user__username", "total").distinct()[:50]
+            else:
+                score_obj = ScoreRecord.objects.filter(category=0, crunchies=3).order_by("-total").values(
+                    "user__username", "total").distinct()[:50]
+            data_list = self._getdata(score_obj, data_list, crunchies='king')
+
         elif category == "recreation":
             pass
         response.datalist = data_list
@@ -63,10 +77,11 @@ class IndexDetail(APIView):
         return Response(response.get_data)
 
     def _getdata(self, score_obj, data_list, crunchies):
+        print(score_obj)
         for index, item in enumerate(score_obj):
             data = {}
             data["total"] = item.get("total")
-            data["of user"] = item.get("user__username")
+            data["of_user"] = item.get("user__username")
             data["rank"] = index + 1
             data["crunchies"] = crunchies
             data_list.append(data)
@@ -149,8 +164,6 @@ class WechatLoginView(APIView):
         code = request.data.get('code', None)
         encryptedData = request.data.get('encryptedData', None)
         iv = request.data.get('iv', None)
-        gender = request.data.get('gender', None)
-        country = request.data.get('country', None)
         if not code:
             return Response({'message': 'lack code'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -162,19 +175,46 @@ class WechatLoginView(APIView):
         session_key = res['session_key'] if 'session_key' in res else None
         if not openid:
             return Response({'message': 'The call to WeChat failed'}, status=status.HTTP_400_BAD_REQUEST)
+
         pc = WXBizDataCrypt(settings.APP_ID, session_key)
         res = pc.decrypt(encryptedData, iv)
         print(res,type(res))
         phone = res.get('phoneNumber')
-        print(phone,type(phone))
-        user = UserInfo.objects.filter(username=openid).first()
+        print(phone)
+        user = UserInfo.objects.filter(openid=openid).first()
         if user:
-            UserInfo.objects.filter(username=openid).update(gender=gender, nationality=country,phone=phone)
+            UserInfo.objects.filter(openid=openid).update(phone=phone)
             token = generate_token(user.id, openid)
+            response.msg = "登录成功"
         else:
-            user_obj = UserInfo.objects.create(username=openid, gender=gender, nationality=country,phone=phone)
+            user_obj = UserInfo.objects.create(openid=openid,phone=phone)
             token = generate_token(user_obj.id, openid)
-        response.msg = "Login Ok!"
+            response.msg = "暂无排名,等待后台上传成绩"
         response.token = token
+        response.phone = phone
         response.openid = openid
+        return Response(response.get_data)
+
+
+class GetUserInfo(APIView):
+    def post(self,request,*args,**kwargs):
+        response = UserResponse()
+        gender = request.data.get('gender', None)
+        nationality = request.data.get('nationality', None)
+        avatar = request.data.get('avatar', None)
+        openid = request.data.get('openid', None)
+        print(gender,nationality,avatar,openid)
+        if not all([gender,nationality,avatar,openid]):
+            return Response({"status":401,"msg":"数据不完整"})
+        if openid:
+            user_obj = UserInfo.objects.filter(openid=openid)
+            if user_obj:
+                UserInfo.objects.filter(openid=openid).update(gender=gender,nationality=nationality,avatar=avatar)
+                response.msg = "传送信息成功"
+            else:
+                response.status = 402
+                response.msg = "无效openid，没有对应的用户"
+        else:
+            response.status = 403
+            response.msg = "openid 不存在"
         return Response(response.get_data)

@@ -49,3 +49,6 @@ class ScoreRecord(models.Model):
     class Meta:
         verbose_name = "积分表"
         verbose_name_plural = "积分表"
+
+
+

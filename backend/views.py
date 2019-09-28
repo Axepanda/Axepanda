@@ -65,7 +65,7 @@ class UploadFile(APIView):
             return Response(response.get_data)
 
     def _write_file(self, file_path, file):
-        with open(file_path, 'wb+',encoding="utf-8") as f:
+        with open(file_path, 'wb+') as f:
             for chunk in file.chunks():
                 f.write(chunk)
 

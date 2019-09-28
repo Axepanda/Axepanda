@@ -51,12 +51,12 @@ def read_data(df_list):
             if user:
                 ScoreRecord.objects.create(first=first,second=second,third=third,fourth=fourth,
                                            fifth=fifth,seventh=seventh,eighth=eighth,ninth=ninth,tenth=tenth,
-                                        total=total,sixth=sixth,user_id=user.pk,crunchies=crunchies,category=category)
+                                        total=total,sixth=sixth,user_id=user.pk,crunchies=crunchies,category=category,created=created)
             else:
-                user_obj = UserInfo.objects.create(username=username,gender=gender,age=age,nationality=nationality,created=created)
+                user_obj = UserInfo.objects.create(username=username,gender=gender,age=age,nationality=nationality)
                 ScoreRecord.objects.create(first=first,second=second,third=third,fourth=fourth,fifth=fifth,
                                                  seventh=seventh,eighth=eighth,ninth=ninth,tenth=tenth,
-                                                 total=total,sixth=sixth,user_id=user_obj.id,crunchies=crunchies,category=category)
+                                                 total=total,sixth=sixth,user_id=user_obj.id,crunchies=crunchies,category=category,created=created)
         except Exception as e :
             return {"status:":401,"msg":str(e)}
     return {"status":200,"msg":"import successfully"}

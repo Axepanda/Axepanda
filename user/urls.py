@@ -7,5 +7,6 @@ from user import views
 urlpatterns = [
     path('wxlogin/', views.WechatLoginView.as_view()),
     path('index/', views.IndexDetail.as_view()),
-    path('personal/', views.UserDetail.as_view())
+    path('personal/', views.UserDetail.as_view()),
+    path('getinfo/', views.GetUserInfo.as_view())
 ]

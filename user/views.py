@@ -8,6 +8,9 @@ from user.common import UserResponse, detect_phone, generate_token
 from user.models import UserInfo, ScoreRecord
 from Axepanda import settings
 import os, datetime
+import base64
+import json
+from Crypto.Cipher import AES
 
 
 class IndexDetail(APIView):
@@ -62,7 +65,8 @@ class IndexDetail(APIView):
         for index, item in enumerate(score_obj):
             data = {}
             data["total"] = item.get("total")
-            data["of user"] = item.get("user__username")
+            data["of_user"] = item.get("user__username")
+            data['avatar'] = item.get("avatar")
             data["rank"] = index + 1
             data["crunchies"] = crunchies
             data_list.append(data)
@@ -116,34 +120,80 @@ class UserDetail(APIView):
         else:
             return 3
 
+class WXBizDataCrypt:
+    def __init__(self, appId, sessionKey):
+        self.appId = appId
+        self.sessionKey = sessionKey
+
+    def decrypt(self, encryptedData, iv):
+        # base64 decode
+        sessionKey = base64.b64decode(self.sessionKey)
+        encryptedData = base64.b64decode(encryptedData)
+        iv = base64.b64decode(iv)
+
+        cipher = AES.new(sessionKey, AES.MODE_CBC, iv)
+
+        decrypted = json.loads(self._unpad(cipher.decrypt(encryptedData)))
+
+        if decrypted['watermark']['appid'] != self.appId:
+            raise Exception('Invalid Buffer')
+        return decrypted
+
+    def _unpad(self, s):
+        return s[:-ord(s[len(s)-1:])]
+
 
 class WechatLoginView(APIView):
     def post(self, request, *args, **kwargs):
         response = UserResponse()
         code = request.data.get('code', None)
-        gender = request.data.get('gender', None)
-        country = request.data.get('country', None)
-        # if not code:
-        #     return Response({'message': '缺少code'}, status=status.HTTP_400_BAD_REQUEST)
-        # url = "https://api.weixin.qq.com/sns/jscode2session?appid={0}&secret={1}&js_code={2}&grant_type=authorization_code" \
-        #     .format(settings.APP_ID, settings.APP_KEY, code)
-        # r = requests.get(url)
-        # res = json.loads(r.text)
-        # openid = res['openid'] if 'openid' in res else None
-        # session_key = res['session_key'] if 'session_key' in res else None
-        # print(openid)
-        # if not openid:
-        #     return Response({'message': 'The WeChat call failed'}, status=status.HTTP_400_BAD_REQUEST)
+        encryptedData = request.data.get('encryptedData', None)
+        iv = request.data.get('iv', None)
 
-        openid = '033xWHE718sLYL1VYID71LEME71xWHEI'
+        if not code:
+            return Response({'message': 'lack code'}, status=status.HTTP_400_BAD_REQUEST)
+
+        url = "https://api.weixin.qq.com/sns/jscode2session?appid={0}&secret={1}&js_code={2}&grant_type=authorization_code" \
+            .format(settings.APP_ID, settings.APP_KEY, code)
+        r = requests.get(url)
+        res = json.loads(r.text)
+        openid = res['openid'] if 'openid' in res else None
+        session_key = res['session_key'] if 'session_key' in res else None
+        if not openid:
+            return Response({'message': 'The call to WeChat failed'}, status=status.HTTP_400_BAD_REQUEST)
+        pc = WXBizDataCrypt(settings.APP_ID, session_key)
+        res = pc.decrypt(encryptedData, iv)
+        print(res,type(res))
+        phone = res.get('phoneNumber')
+        print(phone,type(phone))
         user = UserInfo.objects.filter(username=openid).first()
         if user:
-            UserInfo.objects.filter(username=openid).update(gender=gender, nationality=country)
+            UserInfo.objects.filter(username=openid).update(phone=phone)
             token = generate_token(user.id, openid)
         else:
-            user_obj = UserInfo.objects.create(username=openid, gender=gender, nationality=country)
+            user_obj = UserInfo.objects.create(username=openid,phone=phone)
             token = generate_token(user_obj.id, openid)
         response.msg = "Login Ok!"
         response.token = token
         response.openid = openid
+        response.phone = phone
         return Response(response.get_data)
+
+class GetUserInfo(APIView):
+    def post(self,request,*args,**kwargs):
+        response = UserResponse()
+        openid = request.data.get("openid",None)
+        avatar = request.data.get("avater",None)
+        gender = request.data.get('gender', None)
+        nationality = request.data.get('nationality', None)
+        print(avatar,nationality)
+        if openid:
+            UserInfo.objects.filter(openid=openid).update(avatar=avatar,gender=gender,nationality=nationality)
+            response.msg = "传信息成功"
+        else:
+            response.msg = "失败"
+            response.status = 403
+        return Response(response.get_data)
+
+
+

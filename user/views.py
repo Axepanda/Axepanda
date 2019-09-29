@@ -28,7 +28,7 @@ class IndexDetail(APIView):
         type = request.GET.get('type', "total")
         data_list = []
         current_month = datetime.datetime.now().month
-        if category == 'athletics' and crunchies == 'new':
+        if category == 'athletics' and crunchies == "0":
             if type == "month":
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=0,
                                                        created__month=current_month).order_by("-total").values(
@@ -40,9 +40,9 @@ class IndexDetail(APIView):
             else:
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=0).order_by("-total").values(
                     "user__username", "total").distinct()[:50]
-            data_list = self._getdata(score_obj, data_list, crunchies='new')
+            data_list = self._getdata(score_obj, data_list, crunchies=crunchies)
 
-        elif category == 'athletics' and crunchies == 'brave':
+        elif category == 'athletics' and crunchies == "1":
             if type == "month":
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=1,
                                                        created__month=current_month).order_by(
@@ -54,9 +54,9 @@ class IndexDetail(APIView):
             else:
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=1).order_by("-total").values(
                     "user__username", "total").distinct()[:50]
-            data_list = self._getdata(score_obj, data_list, crunchies='brave')
+            data_list = self._getdata(score_obj, data_list, crunchies=crunchies)
 
-        elif category == 'athletics' and crunchies == 'king':
+        elif category == 'athletics' and crunchies == "3":
             if type == "month":
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=3,
                                                        created__month=current_month).order_by(
@@ -68,7 +68,7 @@ class IndexDetail(APIView):
             else:
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=3).order_by("-total").values(
                     "user__username", "total").distinct()[:50]
-            data_list = self._getdata(score_obj, data_list, crunchies='king')
+            data_list = self._getdata(score_obj, data_list, crunchies=crunchies)
 
         elif category == "recreation":
             pass
@@ -77,15 +77,30 @@ class IndexDetail(APIView):
         return Response(response.get_data)
 
     def _getdata(self, score_obj, data_list, crunchies):
-        print(score_obj)
         for index, item in enumerate(score_obj):
             data = {}
-            data["total"] = item.get("total")
-            data["of_user"] = item.get("user__username")
-            data["rank"] = index + 1
+            total = item.get("total")
+            of_user = item.get("user__username")
+            avatar = item.get("user__avatar")
+            rank = index + 1
+            crunchies = crunchies
+            openid = item.get("user__openid")
+            # 找到每个人在不同榜单上的排名。并存当前排名
+            obj = ScoreRecord.objects.filter(user__username=of_user,crunchies=int(crunchies),total=total).first()
+            if obj:
+                if (obj.rank == None) or (obj.rank > rank) :
+                    obj.rank = rank
+                    obj.save()
+            data["total"] = total
+            data["of_user"] = of_user
+            data["avater"] = avatar
+            data["rank"] = rank
+            data["openid"] = openid
             data["crunchies"] = crunchies
             data_list.append(data)
+        print(data_list)
         return data_list
+
 
 
 class UserDetail(APIView):
@@ -97,43 +112,36 @@ class UserDetail(APIView):
         :return:
         """
         response = UserResponse()
-        phone = request.GET.get('phone', None)
-        total = request.GET.get('total', None)
-        crunchies = request.GET.get('crunchies', None)
-        crunchies = self._get_crunchies(crunchies)
-        result_phone = detect_phone(phone)
-        if result_phone.get('status') == 200:
-            user_obj = UserInfo.objects.filter(phone=phone).first()
-            if user_obj:
-                datalist = []
-                score_obj = ScoreRecord.objects.filter(user_id=user_obj.id, total=total, crunchies=crunchies).values(
-                    "first", "second",
-                    "third", "fourth",
-                    "fifth", "sixth",
-                    "seventh", "eighth",
-                    "ninth", "tenth", "crunchies")
+        openid = request.GET.get('openid', None)
+        user_obj = UserInfo.objects.filter(openid=openid).first()
+        if user_obj:
+            datalist = []
+            score_obj = ScoreRecord.objects.filter(user_id=user_obj.id).values(
+                "first", "second",
+                "third", "fourth",
+                "fifth", "sixth",
+                "seventh", "eighth",
+                "ninth", "tenth", "crunchies","total","rank")
 
-                for item in score_obj:
-                    datalist.append(item)
-                response.datalist = datalist
-                response.msg = "Query successfully"
-            else:
-                response.status = 401
-                response.msg = "User doesn't exist"
+            for item in score_obj:
+                data = self._data_process(item)
+                if len(data) == 13 and data[-1] != None:
+                    datalist.append(data)
+            response.username = user_obj.username
+            response.avatar = user_obj.avatar
+            response.datalist = datalist
+            response.msg = "Query successfully"
         else:
-            response.status = 402
-            response.msg = "Phone number is wrong"
+            response.status = 401
+            response.msg = "User doesn't exist"
         return Response(response.get_data)
 
-    def _get_crunchies(self, crunchies):
-        if crunchies == "new":
-            return 0
-        elif crunchies == "brave":
-            return 1
-        elif crunchies == "master":
-            return 2
-        else:
-            return 3
+    def _data_process(self,item):
+        score = []
+        for i in item.values():
+                score.append(i)
+        return score
+
 
 class WXBizDataCrypt:
     def __init__(self, appId, sessionKey):

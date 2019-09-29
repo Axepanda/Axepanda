@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 class UserInfo(AbstractUser):
-    avatar = models.CharField(max_length=50, null=True, blank=True, verbose_name="头像")
+    avatar = models.CharField(max_length=200, null=True, blank=True, verbose_name="头像")
     openid = models.CharField(max_length=64,null=True,blank=True,verbose_name='openid')
     phone = models.CharField(verbose_name="电话号码",max_length=11,blank=True,null=True)
     age = models.CharField(verbose_name="年龄",max_length=10,blank=True,null=True)
@@ -42,6 +42,7 @@ class ScoreRecord(models.Model):
     )
     crunchies = models.SmallIntegerField(choices=crunchies_choice, default=1, verbose_name='榜单')
     created = models.DateTimeField(auto_now_add=True, verbose_name="录入时间")
+    rank = models.IntegerField(verbose_name="当前排名",null=True,blank=True)
 
     def __str__(self):
         return self.total
@@ -49,6 +50,10 @@ class ScoreRecord(models.Model):
     class Meta:
         verbose_name = "积分表"
         verbose_name_plural = "积分表"
-
-
+#
+# class RankRecord(models.Model):
+#     user = models.ForeignKey("user.UserInfo",on_delete=models.CASCADE,null=True,blank=True)
+#     crunchies = models.CharField(max_length=20,null=True,blank=True,verbose_name="榜单")
+#     rank = models.IntegerField(verbose_name="当前排名",null=True,blank=True)
+#     created = models.DateTimeField(auto_now_add=True,verbose_name="此刻排名产生的时间")
 

@@ -4,7 +4,6 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_jwt.settings import api_settings
 from user.common import UserResponse, detect_phone, generate_token
 from user.models import UserInfo, ScoreRecord
 from Axepanda import settings
@@ -183,7 +182,6 @@ class WechatLoginView(APIView):
         session_key = res['session_key'] if 'session_key' in res else None
         if not openid:
             return Response({'message': 'The call to WeChat failed'}, status=status.HTTP_400_BAD_REQUEST)
-
         pc = WXBizDataCrypt(settings.APP_ID, session_key)
         res = pc.decrypt(encryptedData, iv)
         print(res,type(res))
@@ -191,7 +189,7 @@ class WechatLoginView(APIView):
         print(phone)
         user = UserInfo.objects.filter(openid=openid).first()
         if user:
-            UserInfo.objects.filter(openid=openid).update(phone=phone)
+            UserInfo.objects.filter(username=openid).update(phone=phone)
             token = generate_token(user.id, openid)
             response.msg = "登录成功"
         else:
@@ -201,6 +199,7 @@ class WechatLoginView(APIView):
         response.token = token
         response.phone = phone
         response.openid = openid
+        response.phone = phone
         return Response(response.get_data)
 
 

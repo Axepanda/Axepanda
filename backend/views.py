@@ -55,7 +55,9 @@ class UploadFile(APIView):
             response.msg = "The file is not in the right format"
             return Response(response.get_data)
         else:
-            file_path = settings.MEDIA_ROOT + '\\' + file.name
+            # file_path = settings.MEDIA_ROOT + '\\' + file.name
+            file_path = os.path.join(settings.MEDIA_ROOT,file_name)
+            print(file_path)
             if os.path.exists(file_path):
                 self._write_file(file_path, file)
                 self._import_excel(file_path, response, file_name, file_size)

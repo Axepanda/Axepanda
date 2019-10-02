@@ -84,6 +84,7 @@ class IndexDetail(APIView):
             rank = index + 1
             crunchies = crunchies
             openid = item.get("user__openid")
+            print(openid)
             # 找到每个人在不同榜单上的排名。并存当前排名
             obj = ScoreRecord.objects.filter(user__username=of_user,crunchies=int(crunchies),total=total).first()
             if obj:
@@ -112,19 +113,27 @@ class UserDetail(APIView):
         """
         response = UserResponse()
         openid = request.GET.get('openid', None)
+        crunchies = request.GET.get('crunchies',None)
         user_obj = UserInfo.objects.filter(openid=openid).first()
         if user_obj:
             datalist = []
-            score_obj = ScoreRecord.objects.filter(user_id=user_obj.id).values(
-                "first", "second",
-                "third", "fourth",
-                "fifth", "sixth",
-                "seventh", "eighth",
-                "ninth", "tenth", "crunchies","total","rank")
-
+            if crunchies:
+                score_obj = ScoreRecord.objects.filter(user_id=user_obj.id,crunchies=crunchies).values(
+                    "first", "second",
+                    "third", "fourth",
+                    "fifth", "sixth",
+                    "seventh", "eighth",
+                    "ninth", "tenth", "crunchies","total","rank")
+            else:
+                score_obj = ScoreRecord.objects.filter(user_id=user_obj.id).values(
+                    "first", "second",
+                    "third", "fourth",
+                    "fifth", "sixth",
+                    "seventh", "eighth",
+                    "ninth", "tenth", "crunchies", "total", "rank")
             for item in score_obj:
                 data = self._data_process(item)
-                if len(data) == 13 and data[-1] != None:
+                if data.get("rank") != None:
                     datalist.append(data)
             response.username = user_obj.username
             response.avatar = user_obj.avatar
@@ -136,11 +145,15 @@ class UserDetail(APIView):
         return Response(response.get_data)
 
     def _data_process(self,item):
-        score = []
-        for i in item.values():
-                score.append(i)
+        score = {}
+        tmp = []
+        for k,v in item.items():
+            if k not in ["total","rank","crunchies"]:
+                tmp.append(v)
+            else:
+                score[k] = v
+            score["gradelist"] = tmp
         return score
-
 
 class WXBizDataCrypt:
     def __init__(self, appId, sessionKey):

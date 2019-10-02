@@ -17,6 +17,7 @@ def analysis_excel(path):
 
 
 def read_data(df_list):
+    print(df_list)
     for item in df_list:
         username = item.get('姓名')
         age = item.get('年龄')

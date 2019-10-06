@@ -6,7 +6,7 @@ from user.views import UserInfo
 from Axepanda import settings
 import os
 from backend.common import analysis_excel,read_data
-from backend.models import ExcelFile
+from backend.models import ExcelFile,Notice
 from user.auth import JSONWebTokenAuth
 
 class BDLogin(APIView):
@@ -87,8 +87,8 @@ class UploadFile(APIView):
         else:
             response.msg = result.get("msg")
 
-class Notice(APIView):
-    authentication_classes = [JSONWebTokenAuth,]
+class NoticeView(APIView):
+    # authentication_classes = [JSONWebTokenAuth,]
     def get(self,request,*args,**kwargs):
         """
         :param request:
@@ -97,5 +97,21 @@ class Notice(APIView):
         :return:
         """
         response = UserResponse()
-        response.msg = "我是榜单规则"
+        notice_obj = Notice.objects.order_by("-created").distinct()[:3]
+        datalist = []
+        for item in notice_obj:
+            datalist.append(item.content)
+        response.msg = "Query successfully"
+        response.datalist = datalist
+        return Response(response.get_data)
+
+    def post(self,request,*args,**kwargs):
+        response = UserResponse()
+        content = request.data.get("content",None)
+        if content:
+            Notice.objects.create(content=content)
+            response.msg = "Add notice successfully"
+        else:
+            response.status = 401
+            response.msg = "Content is Null"
         return Response(response.get_data)

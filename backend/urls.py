@@ -8,5 +8,5 @@ from backend import views
 urlpatterns = [
     path('bdlogin/', views.BDLogin.as_view()),
     path('upload/', views.UploadFile.as_view()),
-    path('notice/', views.Notice.as_view()),
+    path('notice/', views.NoticeView.as_view()),
 ]

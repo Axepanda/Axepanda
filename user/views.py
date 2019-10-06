@@ -55,6 +55,20 @@ class IndexDetail(APIView):
                     "user__username", "total").distinct()[:50]
             data_list = self._getdata(score_obj, data_list, crunchies=crunchies)
 
+        elif category == 'athletics' and crunchies == "2":
+            if type == "month":
+                score_obj = ScoreRecord.objects.filter(category=0, crunchies=2,
+                                                       created__month=current_month).order_by(
+                    "-total").values("user__username", "total").distinct()[:50]
+            elif type == 'quarter':
+                score_obj = ScoreRecord.objects.filter(category=0, crunchies=2).filter(
+                    created__month__in=[current_month, current_month + 1, current_month + 2]).order_by("-total").values(
+                    "user__username", "total").distinct()[:50]
+            else:
+                score_obj = ScoreRecord.objects.filter(category=0, crunchies=2).order_by("-total").values(
+                    "user__username", "total").distinct()[:50]
+            data_list = self._getdata(score_obj, data_list, crunchies=crunchies)
+
         elif category == 'athletics' and crunchies == "3":
             if type == "month":
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=3,
@@ -80,15 +94,15 @@ class IndexDetail(APIView):
             data = {}
             total = item.get("total")
             of_user = item.get("user__username")
-            avatar = item.get("user__avatar")
+            user_obj = UserInfo.objects.filter(username=of_user).first()
+            avatar = user_obj.avatar
             rank = index + 1
             crunchies = crunchies
-            openid = item.get("user__openid")
-            print(openid)
+            openid = user_obj.openid
             # 找到每个人在不同榜单上的排名。并存当前排名
-            obj = ScoreRecord.objects.filter(user__username=of_user,crunchies=int(crunchies),total=total).first()
+            obj = ScoreRecord.objects.filter(user__username=of_user, crunchies=int(crunchies), total=total).first()
             if obj:
-                if (obj.rank == None) or (obj.rank > rank) :
+                if (obj.rank == None) or (obj.rank > rank):
                     obj.rank = rank
                     obj.save()
             data["total"] = total
@@ -102,7 +116,6 @@ class IndexDetail(APIView):
         return data_list
 
 
-
 class UserDetail(APIView):
     def get(self, request, *args, **kwargs):
         """
@@ -113,17 +126,17 @@ class UserDetail(APIView):
         """
         response = UserResponse()
         openid = request.GET.get('openid', None)
-        crunchies = request.GET.get('crunchies',None)
+        crunchies = request.GET.get('crunchies', None)
         user_obj = UserInfo.objects.filter(openid=openid).first()
         if user_obj:
             datalist = []
             if crunchies:
-                score_obj = ScoreRecord.objects.filter(user_id=user_obj.id,crunchies=crunchies).values(
+                score_obj = ScoreRecord.objects.filter(user_id=user_obj.id, crunchies=crunchies).values(
                     "first", "second",
                     "third", "fourth",
                     "fifth", "sixth",
                     "seventh", "eighth",
-                    "ninth", "tenth", "crunchies","total","rank")
+                    "ninth", "tenth", "crunchies", "total", "rank")
             else:
                 score_obj = ScoreRecord.objects.filter(user_id=user_obj.id).values(
                     "first", "second",
@@ -144,16 +157,17 @@ class UserDetail(APIView):
             response.msg = "User doesn't exist"
         return Response(response.get_data)
 
-    def _data_process(self,item):
+    def _data_process(self, item):
         score = {}
         tmp = []
-        for k,v in item.items():
-            if k not in ["total","rank","crunchies"]:
+        for k, v in item.items():
+            if k not in ["total", "rank", "crunchies"]:
                 tmp.append(v)
             else:
                 score[k] = v
             score["gradelist"] = tmp
         return score
+
 
 class WXBizDataCrypt:
     def __init__(self, appId, sessionKey):
@@ -175,7 +189,7 @@ class WXBizDataCrypt:
         return decrypted
 
     def _unpad(self, s):
-        return s[:-ord(s[len(s)-1:])]
+        return s[:-ord(s[len(s) - 1:])]
 
 
 class WechatLoginView(APIView):
@@ -197,7 +211,7 @@ class WechatLoginView(APIView):
             return Response({'message': 'The call to WeChat failed'}, status=status.HTTP_400_BAD_REQUEST)
         pc = WXBizDataCrypt(settings.APP_ID, session_key)
         res = pc.decrypt(encryptedData, iv)
-        print(res,type(res))
+        print(res, type(res))
         phone = res.get('phoneNumber')
         print(phone)
         user = UserInfo.objects.filter(openid=openid).first()
@@ -206,7 +220,7 @@ class WechatLoginView(APIView):
             token = generate_token(user.id, openid)
             response.msg = "登录成功"
         else:
-            user_obj = UserInfo.objects.create(openid=openid,phone=phone)
+            user_obj = UserInfo.objects.create(openid=openid, phone=phone)
             token = generate_token(user_obj.id, openid)
             response.msg = "暂无排名,等待后台上传成绩"
         response.token = token
@@ -217,19 +231,19 @@ class WechatLoginView(APIView):
 
 
 class GetUserInfo(APIView):
-    def post(self,request,*args,**kwargs):
+    def post(self, request, *args, **kwargs):
         response = UserResponse()
         gender = request.data.get('gender', None)
         nationality = request.data.get('nationality', None)
         avatar = request.data.get('avatar', None)
         openid = request.data.get('openid', None)
-        print(gender,nationality,avatar,openid)
-        if not all([gender,nationality,avatar,openid]):
-            return Response({"status":401,"msg":"数据不完整"})
+        print(gender, nationality, avatar, openid)
+        if not all([gender, nationality, avatar, openid]):
+            return Response({"status": 401, "msg": "数据不完整"})
         if openid:
             user_obj = UserInfo.objects.filter(openid=openid)
             if user_obj:
-                UserInfo.objects.filter(openid=openid).update(gender=gender,nationality=nationality,avatar=avatar)
+                UserInfo.objects.filter(openid=openid).update(gender=gender, nationality=nationality, avatar=avatar)
                 response.msg = "传送信息成功"
             else:
                 response.status = 402

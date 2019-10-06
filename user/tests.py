@@ -43,19 +43,3 @@ from django.test import TestCase
     #     user_obj = UserInfo.objects.create(username=username,gender=gender,age=age,nationality=nationality,category=category,
     #                                   crunchies=crunchies,created=created)
     #     score_obj = Score.objects.create(total=total,sixth=sixth,user=user_obj)
-
-
-a = {'first': '0', 'second': '0', 'third': '3', 'total': '28', 'rank': 2}
-b = {}
-aa = []
-for k ,v in a.items() :
-    print(k,v)
-    if k not in ['total','rank']:
-        aa.append(v)
-    else:
-        b[k] = v
-    b['grade'] = aa
-print(b)
-
-
-

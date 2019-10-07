@@ -42,7 +42,9 @@ class UploadFile(APIView):
         :return:
         """
         response = UserResponse()
-        file = request.FILES.get('panda_file', None)
+        # print(request.FILES.get("file"))
+        file = request.FILES.get('file', None)
+        print(file)
         if file is None:
             response.status = 401
             response.msg = "There is no file"
@@ -50,6 +52,7 @@ class UploadFile(APIView):
         file_name = file.name
         file_size = file.size
         suffix = file_name.split('.')[1]
+        print(file_name,file_size,suffix)
         if not self._detect_suffix(suffix):
             response.status = 402
             response.msg = "The file is not in the right format"
@@ -88,7 +91,6 @@ class UploadFile(APIView):
             response.msg = result.get("msg")
 
 class NoticeView(APIView):
-    # authentication_classes = [JSONWebTokenAuth,]
     def get(self,request,*args,**kwargs):
         """
         :param request:

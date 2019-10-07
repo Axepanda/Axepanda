@@ -11,9 +11,10 @@ import os, datetime
 import base64
 import json
 from Crypto.Cipher import AES
-
+from user.auth import JSONWebTokenAuth
 
 class IndexDetail(APIView):
+    authentication_classes = [JSONWebTokenAuth,]
     def get(self, request, *args, **kwargs):
         """
         :param request:
@@ -117,6 +118,7 @@ class IndexDetail(APIView):
 
 
 class UserDetail(APIView):
+    authentication_classes = [JSONWebTokenAuth,]
     def get(self, request, *args, **kwargs):
         """
         :param request:

@@ -6,7 +6,7 @@ from user.views import UserInfo
 from Axepanda import settings
 import os
 from backend.common import analysis_excel,read_data
-from backend.models import ExcelFile
+from backend.models import ExcelFile,Notice
 from user.auth import JSONWebTokenAuth
 
 class BDLogin(APIView):
@@ -42,7 +42,9 @@ class UploadFile(APIView):
         :return:
         """
         response = UserResponse()
-        file = request.FILES.get('panda_file', None)
+        # print(request.FILES.get("file"))
+        file = request.FILES.get('file', None)
+        print(file)
         if file is None:
             response.status = 401
             response.msg = "There is no file"
@@ -50,12 +52,15 @@ class UploadFile(APIView):
         file_name = file.name
         file_size = file.size
         suffix = file_name.split('.')[1]
+        print(file_name,file_size,suffix)
         if not self._detect_suffix(suffix):
             response.status = 402
             response.msg = "The file is not in the right format"
             return Response(response.get_data)
         else:
-            file_path = settings.MEDIA_ROOT + '\\' + file.name
+            # file_path = settings.MEDIA_ROOT + '\\' + file.name
+            file_path = os.path.join(settings.MEDIA_ROOT,file_name)
+            print(file_path)
             if os.path.exists(file_path):
                 self._write_file(file_path, file)
                 self._import_excel(file_path, response, file_name, file_size)
@@ -85,8 +90,7 @@ class UploadFile(APIView):
         else:
             response.msg = result.get("msg")
 
-class Notice(APIView):
-    authentication_classes = [JSONWebTokenAuth,]
+class NoticeView(APIView):
     def get(self,request,*args,**kwargs):
         """
         :param request:
@@ -95,5 +99,21 @@ class Notice(APIView):
         :return:
         """
         response = UserResponse()
-        response.msg = "我是榜单规则"
+        notice_obj = Notice.objects.order_by("-created").distinct()[:3]
+        datalist = []
+        for item in notice_obj:
+            datalist.append(item.content)
+        response.msg = "Query successfully"
+        response.datalist = datalist
+        return Response(response.get_data)
+
+    def post(self,request,*args,**kwargs):
+        response = UserResponse()
+        content = request.data.get("content",None)
+        if content:
+            Notice.objects.create(content=content)
+            response.msg = "Add notice successfully"
+        else:
+            response.status = 401
+            response.msg = "Content is Null"
         return Response(response.get_data)

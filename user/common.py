@@ -40,7 +40,6 @@ def generate_token(id, username):
         'username': username,
         'exp': exp,
     }
-
     return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
 
 def verify_token(token):

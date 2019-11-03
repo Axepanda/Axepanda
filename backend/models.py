@@ -11,3 +11,7 @@ class ExcelFile(models.Model):
     class Meta:
         verbose_name = "文件表"
         verbose_name_plural = "文件表"
+
+class Notice(models.Model):
+    content = models.TextField(null=True,blank=True,verbose_name="公告内容")
+    created = models.DateTimeField(auto_now_add=True,verbose_name="更新时间")

@@ -50,10 +50,3 @@ class ScoreRecord(models.Model):
     class Meta:
         verbose_name = "积分表"
         verbose_name_plural = "积分表"
-#
-# class RankRecord(models.Model):
-#     user = models.ForeignKey("user.UserInfo",on_delete=models.CASCADE,null=True,blank=True)
-#     crunchies = models.CharField(max_length=20,null=True,blank=True,verbose_name="榜单")
-#     rank = models.IntegerField(verbose_name="当前排名",null=True,blank=True)
-#     created = models.DateTimeField(auto_now_add=True,verbose_name="此刻排名产生的时间")
-

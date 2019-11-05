@@ -12,6 +12,7 @@ import base64
 import json
 from Crypto.Cipher import AES
 from user.auth import JSONWebTokenAuth
+import uuid,random
 
 class IndexDetail(APIView):
     authentication_classes = [JSONWebTokenAuth,]
@@ -218,18 +219,20 @@ class WechatLoginView(APIView):
         print(phone)
         user = UserInfo.objects.filter(openid=openid).first()
         if user:
-            UserInfo.objects.filter(username=openid).update(phone=phone)
+            UserInfo.objects.filter(openid=openid).update(phone=phone)
             token = generate_token(user.id, openid)
             response.msg = "登录成功"
         else:
-            user_obj = UserInfo.objects.create(openid=openid, phone=phone)
+            user_obj = UserInfo.objects.create(username=self._create_tmp_username(),openid=openid, phone=phone)
             token = generate_token(user_obj.id, openid)
             response.msg = "暂无排名,等待后台上传成绩"
         response.token = token
         response.phone = phone
         response.openid = openid
-        response.phone = phone
         return Response(response.get_data)
+
+    def _create_tmp_username(self):
+        return str(uuid.uuid5(uuid.NAMESPACE_DNS, str(uuid.uuid1()) + str(random.random()))).replace('-','')[:12]
 
 
 class GetUserInfo(APIView):

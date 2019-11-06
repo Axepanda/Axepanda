@@ -242,14 +242,20 @@ class GetUserInfo(APIView):
         nationality = request.data.get('nationality', None)
         avatar = request.data.get('avatar', None)
         openid = request.data.get('openid', None)
-        print(gender, nationality, avatar, openid)
+        nickname = request.data.get('nickName', None)
+        print(nickname)
         if not all([gender, nationality, avatar, openid]):
             return Response({"status": 401, "msg": "数据不完整"})
         if openid:
             user_obj = UserInfo.objects.filter(openid=openid)
             if user_obj:
-                UserInfo.objects.filter(openid=openid).update(gender=gender, nationality=nationality, avatar=avatar)
-                response.msg = "传送信息成功"
+                try:
+                    UserInfo.objects.filter(openid=openid).update(
+                        username=nickname,gender=gender, nationality=nationality, avatar=avatar)
+                    response.msg = "传送信息成功"
+                except Exception as e :
+                    response.status = 402
+                    response.msg = str(e)
             else:
                 response.status = 402
                 response.msg = "无效openid，没有对应的用户"

@@ -55,6 +55,7 @@ def read_data(df_list):
                                            fifth=fifth, seventh=seventh, eighth=eighth, ninth=ninth, tenth=tenth,
                                            total=total, sixth=sixth, user_id=user.pk, crunchies=crunchies,
                                            category=category)
+                UserInfo.objects.filter(phone=phone).update(username=username)
             else:
                 user_obj = UserInfo.objects.create(username=username, age=age, phone=phone)
                 ScoreRecord.objects.create(first=first, second=second, third=third, fourth=fourth, fifth=fifth,

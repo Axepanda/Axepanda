@@ -110,7 +110,7 @@ class IndexDetail(APIView):
                     obj.save()
             data["total"] = total
             data["of_user"] = of_user
-            data["avater"] = avatar
+            data["avatar"] = avatar
             data["rank"] = rank
             data["openid"] = openid
             data["crunchies"] = crunchies

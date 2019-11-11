@@ -115,7 +115,6 @@ class IndexDetail(APIView):
             data["openid"] = openid
             data["crunchies"] = crunchies
             data_list.append(data)
-        print(data_list)
         return data_list
 
 
@@ -244,7 +243,6 @@ class GetUserInfo(APIView):
         avatar = request.data.get('avatar', None)
         openid = request.data.get('openid', None)
         nickname = request.data.get('nickName', None)
-        print(nickname)
         if not all([gender, nationality, avatar, openid]):
             return Response({"status": 401, "msg": "数据不完整"})
         if openid:
@@ -252,7 +250,7 @@ class GetUserInfo(APIView):
             if user_obj:
                 try:
                     UserInfo.objects.filter(openid=openid).update(
-                        username=nickname,gender=gender, nationality=nationality, avatar=avatar)
+                        nickname=nickname,gender=gender, nationality=nationality, avatar=avatar)
                     response.msg = "传送信息成功"
                 except Exception as e :
                     response.status = 402

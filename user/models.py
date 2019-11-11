@@ -8,6 +8,7 @@ class UserInfo(AbstractUser):
     age = models.CharField(verbose_name="年龄",max_length=10,blank=True,null=True)
     gender = models.CharField(max_length=5,verbose_name="性别",blank=True,null=True)
     nationality = models.CharField(verbose_name='国籍',max_length=30,default='中国',null=True,blank=True)
+    nickname = models.CharField(max_length=200, null=True, blank=True, verbose_name='nickName')
 
     def __str__(self):
         return self.username

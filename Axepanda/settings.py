@@ -148,4 +148,4 @@ APP_KEY = 'ff7d0fabf9812e1f629505f3ff4f4a2e'
 #     'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=2),
 # }
 
-TOKEN_EXPIRED_TIME = 0.5
+TOKEN_EXPIRED_TIME = 365

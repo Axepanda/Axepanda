@@ -40,7 +40,7 @@ def read_data(df_list):
         crunchies = item.get('榜单')
         if crunchies == "新手榜":
             crunchies = 0
-        elif crunchies == "勇士榜":
+        elif crunchies == "勇士榜" or crunchies == '勇者榜':
             crunchies = 1
         elif crunchies == "宗师榜":
             crunchies = 2

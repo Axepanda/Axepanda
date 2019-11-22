@@ -34,13 +34,10 @@ class IndexDetail(APIView):
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=0,
                                                        created__month=current_month).order_by("-total").values(
                     "user__phone", "total").distinct()[:50]
-            elif type == "quarter":
-                score_obj = ScoreRecord.objects.filter(category=0, crunchies=0).filter(
-                    created__month__in=[current_month, current_month + 1, current_month + 2]).order_by("-total").values(
-                    "user__phone", "total").distinct()[:50]
             else:
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=0).order_by("-total").values(
                     "user__phone", "total").distinct()[:50]
+            score_obj = self._distinct_score(score_obj)
             data_list = self._getdata(score_obj, data_list, crunchies=crunchies)
 
         elif category == 'athletics' and crunchies == "1":
@@ -48,27 +45,10 @@ class IndexDetail(APIView):
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=1,
                                                        created__month=current_month).order_by(
                     "-total").values("user__phone", "total").distinct()[:50]
-            elif type == 'quarter':
-                score_obj = ScoreRecord.objects.filter(category=0, crunchies=1).filter(
-                    created__month__in=[current_month, current_month + 1, current_month + 2]).order_by("-total").values(
-                    "user__phone", "total").distinct()[:50]
             else:
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=1).order_by("-total").values(
                     "user__phone", "total").distinct()[:50]
-            data_list = self._getdata(score_obj, data_list, crunchies=crunchies)
-
-        elif category == 'athletics' and crunchies == "2":
-            if type == "month":
-                score_obj = ScoreRecord.objects.filter(category=0, crunchies=2,
-                                                       created__month=current_month).order_by(
-                    "-total").values("user__phone", "total").distinct()[:50]
-            elif type == 'quarter':
-                score_obj = ScoreRecord.objects.filter(category=0, crunchies=2).filter(
-                    created__month__in=[current_month, current_month + 1, current_month + 2]).order_by("-total").values(
-                    "user__phone", "total").distinct()[:50]
-            else:
-                score_obj = ScoreRecord.objects.filter(category=0, crunchies=2).order_by("-total").values(
-                    "user__phone", "total").distinct()[:50]
+            score_obj = self._distinct_score(score_obj)
             data_list = self._getdata(score_obj, data_list, crunchies=crunchies)
 
         elif category == 'athletics' and crunchies == "3":
@@ -76,13 +56,10 @@ class IndexDetail(APIView):
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=3,
                                                        created__month=current_month).order_by(
                     "-total").values("user__phone", "total").distinct()[:50]
-            elif type == 'quarter':
-                score_obj = ScoreRecord.objects.filter(category=0, crunchies=3).filter(
-                    created__month__in=[current_month, current_month + 1, current_month + 2]).order_by("-total").values(
-                    "user__phone", "total").distinct()[:50]
             else:
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=3).order_by("-total").values(
-                    "user__phone", "total").distinct()[:50]
+                    "user__phone","total").distinct()[:50]
+            score_obj = self._distinct_score(score_obj)
             data_list = self._getdata(score_obj, data_list, crunchies=crunchies)
 
         elif category == "recreation":
@@ -116,6 +93,16 @@ class IndexDetail(APIView):
             data["crunchies"] = crunchies
             data_list.append(data)
         return data_list
+
+    def _distinct_score(self,score_obj):
+        count_times = {}
+        tmp = []
+        for item in score_obj:
+            count = count_times.get(item.get('user__phone'), 0) + 1
+            count_times[item.get('user__phone')] = count
+            if count <= 1:
+                tmp.append(item)
+        return tmp
 
 
 class UserDetail(APIView):
@@ -214,7 +201,6 @@ class WechatLoginView(APIView):
             return Response({'message': 'The call to WeChat failed'}, status=status.HTTP_400_BAD_REQUEST)
         pc = WXBizDataCrypt(settings.APP_ID, session_key)
         res = pc.decrypt(encryptedData, iv)
-        print(res, type(res))
         phone = res.get('phoneNumber')
         print(phone)
         user = UserInfo.objects.filter(openid=openid).first()

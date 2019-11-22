@@ -82,7 +82,7 @@ class IndexDetail(APIView):
             # 找到每个人在不同榜单上的排名。并存当前排名
             obj = ScoreRecord.objects.filter(user__openid=openid,crunchies=int(crunchies), total=total).first()
             if obj:
-                if (obj.rank == None) or (obj.rank > rank):
+                if (obj.rank == None) or (obj.rank is not rank):
                     obj.rank = rank
                     obj.save()
             data["total"] = total
@@ -194,7 +194,7 @@ class WechatLoginView(APIView):
         url = "https://api.weixin.qq.com/sns/jscode2session?appid={0}&secret={1}&js_code={2}&grant_type=authorization_code" \
             .format(settings.APP_ID, settings.APP_KEY, code)
         r = requests.get(url)
-        res = json.loads(r.text)
+        res = json.loads(r.text.decode('utf-8'))
         openid = res['openid'] if 'openid' in res else None
         session_key = res['session_key'] if 'session_key' in res else None
         if not openid:

@@ -42,7 +42,7 @@ class ScoreRecord(models.Model):
         (3, "王者榜"),
     )
     crunchies = models.SmallIntegerField(choices=crunchies_choice, default=1, verbose_name='榜单')
-    created = models.DateTimeField(auto_now_add=True, verbose_name="录入时间")
+    created = models.DateTimeField(auto_now_add=False, verbose_name="录入时间")
     rank = models.IntegerField(verbose_name="当前排名",null=True,blank=True)
 
     def __str__(self):

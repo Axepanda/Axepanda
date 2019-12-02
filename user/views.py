@@ -26,13 +26,15 @@ class IndexDetail(APIView):
         response = UserResponse()
         crunchies = request.GET.get('crunchies', None)
         category = request.GET.get('category', None)
-        type = request.GET.get('type', "total")
+        month = request.GET.get('month', None)
+        types = request.GET.get('type', "total")
         data_list = []
         current_month = datetime.datetime.now().month
+        target_month = month if month is not None else current_month
         if category == 'athletics' and crunchies == "0":
-            if type == "month":
+            if types == "month":
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=0,
-                                                       created__month=current_month).order_by("-total").values(
+                                                       created__month=target_month).order_by("-total").values(
                     "user__phone", "total").distinct()[:50]
             else:
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=0).order_by("-total").values(
@@ -41,9 +43,9 @@ class IndexDetail(APIView):
             data_list = self._getdata(score_obj, data_list, crunchies=crunchies)
 
         elif category == 'athletics' and crunchies == "1":
-            if type == "month":
+            if types == "month":
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=1,
-                                                       created__month=current_month).order_by(
+                                                       created__month=target_month).order_by(
                     "-total").values("user__phone", "total").distinct()[:50]
             else:
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=1).order_by("-total").values(
@@ -52,9 +54,9 @@ class IndexDetail(APIView):
             data_list = self._getdata(score_obj, data_list, crunchies=crunchies)
 
         elif category == 'athletics' and crunchies == "3":
-            if type == "month":
+            if types == "month":
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=3,
-                                                       created__month=current_month).order_by(
+                                                       created__month=target_month).order_by(
                     "-total").values("user__phone", "total").distinct()[:50]
             else:
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=3).order_by("-total").values(

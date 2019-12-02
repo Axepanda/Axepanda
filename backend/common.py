@@ -53,14 +53,14 @@ def read_data(df_list):
                 ScoreRecord.objects.create(first=first, second=second, third=third, fourth=fourth,
                                            fifth=fifth, seventh=seventh, eighth=eighth, ninth=ninth, tenth=tenth,
                                            total=total, sixth=sixth, user_id=user.pk, crunchies=crunchies,
-                                           category=category)
+                                           category=category,created=created)
                 UserInfo.objects.filter(phone=phone).update(username=username)
             else:
                 user_obj = UserInfo.objects.create(username=username, age=age, phone=phone)
                 ScoreRecord.objects.create(first=first, second=second, third=third, fourth=fourth, fifth=fifth,
                                            seventh=seventh, eighth=eighth, ninth=ninth, tenth=tenth,
                                            total=total, sixth=sixth, user_id=user_obj.id, crunchies=crunchies,
-                                           category=category)
+                                           category=category,created=created)
         except Exception as e:
             return {"status:": 401, "msg": str(e)}
     return {"status": 200, "msg": "import successfully"}

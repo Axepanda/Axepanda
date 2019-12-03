@@ -15,7 +15,7 @@ from user.auth import JSONWebTokenAuth
 import uuid,random
 
 class IndexDetail(APIView):
-    authentication_classes = [JSONWebTokenAuth,]
+    # authentication_classes = [JSONWebTokenAuth,]
     def get(self, request, *args, **kwargs):
         """
         :param request:
@@ -30,7 +30,7 @@ class IndexDetail(APIView):
         types = request.GET.get('type', "total")
         data_list = []
         current_month = datetime.datetime.now().month
-        target_month = month if month is not None else current_month
+        target_month = self._select_month(month,current_month)
         if category == 'athletics' and crunchies == "0":
             if types == "month":
                 score_obj = ScoreRecord.objects.filter(category=0, crunchies=0,
@@ -106,6 +106,17 @@ class IndexDetail(APIView):
                 tmp.append(item)
         return tmp
 
+    def _select_month(self,month,current_month):
+        if month == "" or month is None or month == "None" or month == "null":
+            target_month = current_month
+            return target_month
+        elif month and isinstance(month,str):
+            if int(month) in [x for x in range(1,13)]:
+                target_month = int(month)
+                return target_month
+            else:
+                target_month  = current_month
+                return target_month
 
 class UserDetail(APIView):
     authentication_classes = [JSONWebTokenAuth,]

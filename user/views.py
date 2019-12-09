@@ -152,6 +152,7 @@ class UserDetail(APIView):
                 if data.get("rank") != None:
                     datalist.append(data)
             response.username = user_obj.username
+            response.phone = user_obj.phone
             response.avatar = user_obj.avatar
             response.datalist = datalist
             response.msg = "Query successfully"

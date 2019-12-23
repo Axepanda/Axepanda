@@ -262,3 +262,15 @@ class GetUserInfo(APIView):
             response.status = 403
             response.msg = "openid 不存在"
         return Response(response.get_data)
+
+
+class UpdateName(APIView):
+    def post(self,request,*args,**kwargs):
+        response = UserResponse()
+        username = request.data.get('username', None)
+        openid = request.data.get('openid', None)
+        print(openid,username)
+        if openid and username:
+            UserInfo.objects.filter(openid=openid).update(username=username)
+            response.msg = "更新成功"
+        return Response(response.get_data)

@@ -269,8 +269,12 @@ class UpdateName(APIView):
         response = UserResponse()
         username = request.data.get('username', None)
         openid = request.data.get('openid', None)
-        print(openid,username)
-        if openid and username:
-            UserInfo.objects.filter(openid=openid).update(username=username)
-            response.msg = "更新成功"
+        if username and openid:
+            user_obj = UserInfo.objects.filter(username=username).fisrt()
+            if user_obj:
+                response.status = 401
+                response.msg = "该名字已存在,请重新输入"
+            else:
+                UserInfo.objects.filter(openid=openid).update(username=username)
+                response.msg = "更新成功"
         return Response(response.get_data)
